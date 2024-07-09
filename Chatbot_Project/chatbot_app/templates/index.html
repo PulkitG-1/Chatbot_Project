@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #chatbox { width: 300px; margin: 0 auto; border: 1px solid #ccc; padding: 10px; }
+        #messages { height: 200px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; padding: 5px; }
+        .message { margin-bottom: 5px; }
+        .user { text-align: right; }
+        .chatbot { text-align: left; }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        <div id="messages"></div>
+        <input type="text" id="message" placeholder="Type a message" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <script>
+        async function sendMessage() {
+            const message = document.getElementById('message').value;
+            document.getElementById('message').value = '';
+
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user';
+            userMessage.textContent = message;
+            document.getElementById('messages').appendChild(userMessage);
+
+            const response = await fetch('/api/get_response/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `message=${encodeURIComponent(message)}`
+            });
+
+            const data = await response.json();
+            const chatbotMessage = document.createElement('div');
+            chatbotMessage.className = 'message chatbot';
+            chatbotMessage.textContent = data.response;
+            document.getElementById('messages').appendChild(chatbotMessage);
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
